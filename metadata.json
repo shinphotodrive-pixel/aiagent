@@ -1,0 +1,6 @@
+{
+  "name": "AI Architecture Comparison",
+  "description": "Interactive visualizer and execution comparison between Pure LLM, RAG, and Agentic AI paradigms with step-by-step trace simulation and node inspection.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
