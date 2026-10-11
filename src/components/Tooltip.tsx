@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArchitectureNode, Language } from '../types';
 import { ArrowRight, MousePointerClick, Sparkles, Layers, Cpu } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 export interface TooltipProps {
   node: ArchitectureNode;
@@ -18,6 +19,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   position = 'auto',
   disabled = false,
 }) => {
+  const { isLight } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
   const isKo = language === 'ko';
 
@@ -44,10 +46,22 @@ export const Tooltip: React.FC<TooltipProps> = ({
   }
 
   const paradigmBadge = {
-    llm: { label: 'L.L.M', color: 'bg-blue-900/70 text-blue-300 border-blue-500/50' },
-    rag: { label: 'R.A.G', color: 'bg-sky-900/70 text-sky-300 border-sky-500/50' },
-    agentic: { label: 'Agentic AI', color: 'bg-purple-900/70 text-purple-300 border-purple-500/50' },
-    shared: { label: 'Shared', color: 'bg-zinc-800 text-zinc-300 border-zinc-700' },
+    llm: {
+      label: 'L.L.M',
+      color: isLight ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-blue-900/70 text-blue-300 border-blue-500/50',
+    },
+    rag: {
+      label: 'R.A.G',
+      color: isLight ? 'bg-sky-100 text-sky-800 border-sky-300' : 'bg-sky-900/70 text-sky-300 border-sky-500/50',
+    },
+    agentic: {
+      label: 'Agentic AI',
+      color: isLight ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-purple-900/70 text-purple-300 border-purple-500/50',
+    },
+    shared: {
+      label: 'Shared',
+      color: isLight ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-zinc-800 text-zinc-300 border-zinc-700',
+    },
   }[node.paradigm];
 
   const categoryLabels: Record<string, { en: string; ko: string }> = {
@@ -102,16 +116,26 @@ export const Tooltip: React.FC<TooltipProps> = ({
                 : `translate(${horizontalAlignment}, -105%)`,
             }}
           >
-            <div className="w-[290px] sm:w-[320px] bg-zinc-950/95 border border-zinc-700/80 rounded-xl p-3.5 shadow-2xl backdrop-blur-md text-zinc-200 ring-1 ring-white/10">
+            <div className={`w-[290px] sm:w-[320px] rounded-xl p-3.5 shadow-2xl backdrop-blur-md border ${
+              isLight
+                ? 'bg-white/98 border-slate-300 text-slate-800 ring-1 ring-slate-900/10'
+                : 'bg-zinc-950/95 border-zinc-700/80 text-zinc-200 ring-1 ring-white/10'
+            }`}>
               {/* Header: Node Title, Category, and Paradigm Badge */}
-              <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-zinc-800/80">
+              <div className={`flex items-center justify-between gap-2 mb-2 pb-2 border-b ${
+                isLight ? 'border-slate-200' : 'border-zinc-800/80'
+              }`}>
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 animate-pulse" />
                   <div className="truncate">
-                    <h4 className="font-bold text-white text-xs sm:text-sm truncate">
+                    <h4 className={`font-bold text-xs sm:text-sm truncate ${
+                      isLight ? 'text-slate-900' : 'text-white'
+                    }`}>
                       {isKo ? node.nameKo : node.name}
                     </h4>
-                    <span className="text-[10px] text-zinc-400 block truncate">
+                    <span className={`text-[10px] block truncate ${
+                      isLight ? 'text-slate-500' : 'text-zinc-400'
+                    }`}>
                       {isKo ? categoryInfo.ko : categoryInfo.en}
                     </span>
                   </div>
@@ -125,7 +149,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
               {/* Function Definition / Summary based on system metadata */}
               <div className="mb-2.5">
-                <p className="text-[11.5px] leading-relaxed text-zinc-300 font-medium">
+                <p className={`text-[11.5px] leading-relaxed font-medium ${
+                  isLight ? 'text-slate-700' : 'text-zinc-300'
+                }`}>
                   {isKo ? node.summaryKo : node.summary}
                 </p>
               </div>
@@ -136,13 +162,17 @@ export const Tooltip: React.FC<TooltipProps> = ({
                   {node.details.techStack.slice(0, 3).map((tech, idx) => (
                     <span
                       key={idx}
-                      className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 font-mono"
+                      className={`text-[9px] px-1.5 py-0.5 rounded border font-mono ${
+                        isLight
+                          ? 'bg-slate-100 text-slate-700 border-slate-300'
+                          : 'bg-zinc-800/90 text-zinc-300 border-zinc-700/60'
+                      }`}
                     >
                       {tech}
                     </span>
                   ))}
                   {node.details.techStack.length > 3 && (
-                    <span className="text-[9px] text-zinc-500">
+                    <span className={`text-[9px] ${isLight ? 'text-slate-500' : 'text-zinc-500'}`}>
                       +{node.details.techStack.length - 3}
                     </span>
                   )}
@@ -151,21 +181,25 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
               {/* Input & Output contract */}
               {node.details && (
-                <div className="bg-black/60 rounded-lg p-2 border border-zinc-800/70 mb-2.5 text-[10px] text-zinc-400 font-mono flex items-center justify-between gap-1.5">
+                <div className={`rounded-lg p-2 border mb-2.5 text-[10px] font-mono flex items-center justify-between gap-1.5 ${
+                  isLight
+                    ? 'bg-slate-50 border-slate-200 text-slate-700'
+                    : 'bg-black/60 border-zinc-800/70 text-zinc-400'
+                }`}>
                   <div className="truncate max-w-[46%]">
-                    <span className="text-zinc-500 block text-[9px] font-sans">
+                    <span className={`block text-[9px] font-sans ${isLight ? 'text-slate-500' : 'text-zinc-500'}`}>
                       {isKo ? '입력 (Input)' : 'Input'}
                     </span>
-                    <span className="text-zinc-300 truncate block">
+                    <span className={`truncate block font-semibold ${isLight ? 'text-slate-900' : 'text-zinc-300'}`}>
                       {isKo ? node.details.inputKo : node.details.input}
                     </span>
                   </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                  <ArrowRight className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-slate-400' : 'text-zinc-500'}`} />
                   <div className="truncate max-w-[46%] text-right">
-                    <span className="text-amber-500/80 block text-[9px] font-sans">
+                    <span className={`block text-[9px] font-sans ${isLight ? 'text-amber-800 font-medium' : 'text-amber-500/80'}`}>
                       {isKo ? '출력 (Output)' : 'Output'}
                     </span>
-                    <span className="text-amber-300 truncate block">
+                    <span className={`truncate block font-semibold ${isLight ? 'text-amber-700' : 'text-amber-300'}`}>
                       {isKo ? node.details.outputKo : node.details.output}
                     </span>
                   </div>
@@ -173,12 +207,16 @@ export const Tooltip: React.FC<TooltipProps> = ({
               )}
 
               {/* Click hint footer */}
-              <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1.5 border-t border-zinc-900/90">
-                <span className="flex items-center gap-1 text-amber-400/90 font-medium">
+              <div className={`flex items-center justify-between text-[10px] pt-1.5 border-t ${
+                isLight ? 'border-slate-200 text-slate-500' : 'border-zinc-900/90 text-zinc-500'
+              }`}>
+                <span className={`flex items-center gap-1 font-medium ${
+                  isLight ? 'text-amber-700' : 'text-amber-400/90'
+                }`}>
                   <MousePointerClick className="w-3 h-3" />
                   {isKo ? '클릭 시 상세 코드 & 아키텍처 보기' : 'Click to inspect code & architecture'}
                 </span>
-                <span className="text-[9px] text-zinc-500">ESC / Tab</span>
+                <span className={`text-[9px] ${isLight ? 'text-slate-400' : 'text-zinc-500'}`}>ESC / Tab</span>
               </div>
             </div>
           </motion.div>

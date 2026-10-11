@@ -8,6 +8,13 @@
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.light body,
+  body.light {
+    background-color: #f8fafc;
+    color: #0f172a;
   }
 }
 
@@ -17,6 +24,13 @@
   width: 1150px;
   height: 750px;
   flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.light .canvas-container {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(203, 213, 225, 0.8);
 }
 
 .node {
@@ -190,6 +204,96 @@
   }
 }
 
+/* =========================================================================
+   HIGH-CONTRAST LIGHT MODE RULES
+   Ensures supreme legibility for all node colors and canvas elements
+   ========================================================================= */
+
+.light .node {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.12);
+  color: #ffffff;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.light .node:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45), 0 8px 20px rgba(0, 0, 0, 0.22);
+}
+
+.light .node.is-active-pulse {
+  box-shadow: 0 0 0 4px #f59e0b, 0 8px 22px rgba(245, 158, 11, 0.35);
+}
+
+/* Light Mode: User Node has crisp contrast against white canvas */
+.light .node-user {
+  background-color: #fed7aa;
+  border: 2.5px solid #9a3412;
+  box-shadow: 0 0 0 8px rgba(254, 215, 170, 0.5), 0 4px 14px rgba(154, 52, 18, 0.25);
+}
+
+.light .node-rect {
+  border: 1.5px solid rgba(0, 0, 0, 0.22);
+}
+
+.light .node-rect-sm {
+  border: 1.5px solid rgba(0, 0, 0, 0.22);
+}
+
+/* Saturated rich node hues for light mode */
+.light .bg-green-light { 
+  background-color: #15803d; 
+}
+.light .bg-green-dark { 
+  background-color: #166534; 
+}
+.light .bg-blue { 
+  background-color: #1d4ed8; 
+}
+.light .bg-orange { 
+  background-color: #c2410c; 
+}
+.light .bg-pink { 
+  background-color: #be185d; 
+}
+.light .bg-purple { 
+  background-color: #6b21a8; 
+  border: 1.5px solid #581c87; 
+}
+
+/* High contrast database cylinders */
+.light .node-db {
+  border: 2.5px solid #0f172a;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+}
+
+.light .node-db::after {
+  border: 2.5px solid #0f172a;
+}
+
+.light .bg-db-blue { 
+  background-color: #0369a1; 
+}
+.light .bg-db-gold { 
+  background-color: #b45309; 
+}
+
+/* High contrast vertical planning node */
+.light .node-vertical {
+  background-color: #6b21a8;
+  border: 2px solid #3b0764;
+  box-shadow: 0 6px 16px rgba(59, 7, 100, 0.25);
+}
+
+/* High contrast tools/agents layered pill */
+.light .node-pill {
+  border: 2px solid #831843;
+}
+
+.light .node-pill::after {
+  border: 2px solid #78350f;
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
@@ -205,3 +309,52 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
 }
+
+.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Light mode surface and typography enhancement for all explorer tabs & modals */
+.light .bg-zinc-950,
+.light .bg-zinc-950\/80,
+.light .bg-zinc-950\/90,
+.light .bg-zinc-950\/70 {
+  background-color: #ffffff;
+}
+
+.light .bg-zinc-900,
+.light .bg-zinc-900\/90,
+.light .bg-zinc-900\/80,
+.light .bg-zinc-900\/70,
+.light .bg-zinc-900\/60 {
+  background-color: #f8fafc;
+}
+
+.light .border-zinc-800,
+.light .border-zinc-800\/80,
+.light .border-zinc-800\/60,
+.light .border-zinc-800\/40,
+.light .border-zinc-700,
+.light .border-zinc-700\/60,
+.light .border-zinc-700\/40 {
+  border-color: #cbd5e1;
+}
+
+.light h1:not(.node *),
+.light h2:not(.node *),
+.light h3:not(.node *),
+.light h4:not(.node *) {
+  color: #0f172a;
+}
+
+.light p:not(.node *) {
+  color: #334155;
+}
+

@@ -4,6 +4,7 @@ import { ARCHITECTURE_NODES } from '../data/architectureData';
 import { Tooltip } from './Tooltip';
 import { toPng } from 'html-to-image';
 import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, Layers, Sparkles, Download, Loader2 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 interface Props {
   language: Language;
@@ -27,11 +28,18 @@ export const ArchitectureCanvas: React.FC<Props> = ({
   onExportSuccess
 }) => {
   const isKo = language === 'ko';
+  const { isLight } = useTheme();
   const [zoom, setZoom] = useState(1);
   const [hoveredParadigm, setHoveredParadigm] = useState<Paradigm | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasExportRef = useRef<HTMLDivElement>(null);
+
+  // High-contrast SVG line & marker colors
+  const svgStroke = isLight ? '#334155' : '#b2b2b2';
+  const peachStroke = isLight ? '#c2410c' : '#e9b999';
+  const pinkStroke = isLight ? '#be185d' : '#b33a78';
+  const goldStroke = isLight ? '#d97706' : '#fbbf24';
 
   const effectiveParadigm = hoveredParadigm || selectedParadigm;
 
@@ -55,7 +63,7 @@ export const ArchitectureCanvas: React.FC<Props> = ({
 
       const dataUrl = await toPng(canvasExportRef.current, {
         pixelRatio: 2.5,
-        backgroundColor: '#000000',
+        backgroundColor: isLight ? '#ffffff' : '#000000',
         quality: 1,
         filter: (node) => {
           if (node instanceof HTMLElement && node.classList.contains('no-export')) {
@@ -84,10 +92,14 @@ export const ArchitectureCanvas: React.FC<Props> = ({
   return (
     <div className="relative w-full flex flex-col items-center select-none">
       {/* Top Controls Bar */}
-      <div className="w-full max-w-[1150px] mb-4 flex flex-wrap items-center justify-between gap-3 px-3 py-2 bg-zinc-900/80 backdrop-blur border border-zinc-800 rounded-xl text-xs text-zinc-300 shadow-xl">
+      <div className={`w-full max-w-[1150px] mb-4 flex flex-wrap items-center justify-between gap-3 px-3 py-2 ${
+        isLight
+          ? 'bg-white/95 border-slate-300 text-slate-800 shadow-md ring-1 ring-slate-900/5'
+          : 'bg-zinc-900/80 backdrop-blur border-zinc-800 text-zinc-300 shadow-xl'
+      } border rounded-xl text-xs`}>
         {/* Paradigm Filter Buttons */}
         <div className="flex items-center gap-1.5">
-          <span className="text-zinc-500 font-medium px-1 flex items-center gap-1">
+          <span className={`${isLight ? 'text-slate-600' : 'text-zinc-500'} font-medium px-1 flex items-center gap-1`}>
             <Layers className="w-3.5 h-3.5" />
             {isKo ? '아키텍처 필터:' : 'Filter Paradigm:'}
           </span>
@@ -95,7 +107,11 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             onClick={() => onSelectParadigm('all')}
             className={`px-2.5 py-1 rounded-md font-medium transition-all ${
               selectedParadigm === 'all'
-                ? 'bg-zinc-100 text-zinc-950 font-semibold shadow-sm'
+                ? isLight
+                  ? 'bg-slate-900 text-white font-semibold shadow-sm'
+                  : 'bg-zinc-100 text-zinc-950 font-semibold shadow-sm'
+                : isLight
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
@@ -106,6 +122,8 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             className={`px-2.5 py-1 rounded-md font-medium transition-all ${
               selectedParadigm === 'llm'
                 ? 'bg-blue-600 text-white font-semibold shadow-sm shadow-blue-500/30'
+                : isLight
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
@@ -116,6 +134,8 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             className={`px-2.5 py-1 rounded-md font-medium transition-all ${
               selectedParadigm === 'rag'
                 ? 'bg-sky-600 text-white font-semibold shadow-sm shadow-sky-500/30'
+                : isLight
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
@@ -126,6 +146,8 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             className={`px-2.5 py-1 rounded-md font-medium transition-all ${
               selectedParadigm === 'agentic'
                 ? 'bg-purple-600 text-white font-semibold shadow-sm shadow-purple-500/30'
+                : isLight
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
@@ -139,7 +161,11 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             onClick={() => setFlowAnimating(!flowAnimating)}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all font-medium border ${
               flowAnimating
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-500/20'
+                ? isLight
+                  ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-sm'
+                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-500/20'
+                : isLight
+                ? 'bg-slate-100 text-slate-600 border-slate-300 hover:text-slate-900'
                 : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:text-zinc-200'
             }`}
             title={isKo ? '데이터 패킷 애니메이션 토글' : 'Toggle live flow packets'}
@@ -151,59 +177,63 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 text-amber-400" />
+                <Play className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
                 <span>{isKo ? '데이터 흐름 재생' : 'Play Flow'}</span>
               </>
             )}
           </button>
 
-          <div className="h-4 w-px bg-zinc-800 mx-1" />
+          <div className={`h-4 w-px ${isLight ? 'bg-slate-300' : 'bg-zinc-800'} mx-1`} />
 
           {/* Zoom controls */}
-          <div className="flex items-center bg-zinc-800/80 rounded-md border border-zinc-700/60 p-0.5">
+          <div className={`flex items-center ${isLight ? 'bg-slate-100 border-slate-300' : 'bg-zinc-800/80 border-zinc-700/60'} rounded-md border p-0.5`}>
             <button
               onClick={handleZoomOut}
-              className="p-1 hover:text-white text-zinc-400 transition"
+              className={`p-1 ${isLight ? 'text-slate-600 hover:text-slate-900' : 'text-zinc-400 hover:text-white'} transition`}
               title="Zoom out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[11px] font-mono px-1.5 text-zinc-300">
+            <span className={`text-[11px] font-mono px-1.5 ${isLight ? 'text-slate-800' : 'text-zinc-300'}`}>
               {Math.round(zoom * 100)}%
             </span>
             <button
               onClick={handleZoomIn}
-              className="p-1 hover:text-white text-zinc-400 transition"
+              className={`p-1 ${isLight ? 'text-slate-600 hover:text-slate-900' : 'text-zinc-400 hover:text-white'} transition`}
               title="Zoom in"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleResetZoom}
-              className="p-1 hover:text-white text-zinc-400 transition ml-0.5 border-l border-zinc-700/60 pl-1"
+              className={`p-1 ${isLight ? 'text-slate-600 hover:text-slate-900 border-slate-300' : 'text-zinc-400 hover:text-white border-zinc-700/60'} transition ml-0.5 border-l pl-1`}
               title="Reset Zoom"
             >
               <RotateCcw className="w-3 h-3" />
             </button>
           </div>
 
-          <div className="h-4 w-px bg-zinc-800 mx-1" />
+          <div className={`h-4 w-px ${isLight ? 'bg-slate-300' : 'bg-zinc-800'} mx-1`} />
 
           {/* Export High-Res PNG Button */}
           <button
             onClick={handleExportPNG}
             disabled={isExporting}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-md transition-all font-medium border bg-zinc-800/90 text-zinc-200 border-zinc-700 hover:text-white hover:bg-zinc-700 hover:border-zinc-600 disabled:opacity-50 cursor-pointer shadow-sm active:scale-95"
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all font-medium border ${
+              isLight
+                ? 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200'
+                : 'bg-zinc-800/90 text-zinc-200 border-zinc-700 hover:text-white hover:bg-zinc-700 hover:border-zinc-600'
+            } disabled:opacity-50 cursor-pointer shadow-sm active:scale-95`}
             title={isKo ? '캔버스를 고해상도(2.5x) PNG 이미지로 캡처하여 저장' : 'Capture and download canvas as high-resolution (2.5x) PNG'}
           >
             {isExporting ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                <Loader2 className={`w-3.5 h-3.5 animate-spin ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
                 <span>{isKo ? 'PNG 캡처 중...' : 'Capturing...'}</span>
               </>
             ) : (
               <>
-                <Download className="w-3.5 h-3.5 text-amber-400" />
+                <Download className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
                 <span>{isKo ? '고해상도 PNG 저장' : 'Export PNG'}</span>
               </>
             )}
@@ -226,21 +256,33 @@ export const ArchitectureCanvas: React.FC<Props> = ({
           <div 
             className={`absolute top-0 left-[20px] w-[260px] h-[720px] rounded-2xl border transition-all duration-300 pointer-events-none ${
               effectiveParadigm === 'llm' 
-                ? 'bg-blue-950/15 border-blue-500/30 ring-1 ring-blue-500/20' 
+                ? isLight
+                  ? 'bg-blue-100/70 border-blue-500 ring-2 ring-blue-400/40 shadow-sm'
+                  : 'bg-blue-950/15 border-blue-500/30 ring-1 ring-blue-500/20' 
+                : isLight
+                ? 'border-slate-200 bg-slate-50/50'
                 : 'border-zinc-900/60'
             }`} 
           />
           <div 
             className={`absolute top-0 left-[310px] w-[370px] h-[720px] rounded-2xl border transition-all duration-300 pointer-events-none ${
               effectiveParadigm === 'rag' 
-                ? 'bg-sky-950/15 border-sky-500/30 ring-1 ring-sky-500/20' 
+                ? isLight
+                  ? 'bg-sky-100/70 border-sky-500 ring-2 ring-sky-400/40 shadow-sm'
+                  : 'bg-sky-950/15 border-sky-500/30 ring-1 ring-sky-500/20' 
+                : isLight
+                ? 'border-slate-200 bg-slate-50/50'
                 : 'border-zinc-900/60'
             }`} 
           />
           <div 
             className={`absolute top-0 left-[710px] w-[420px] h-[720px] rounded-2xl border transition-all duration-300 pointer-events-none ${
               effectiveParadigm === 'agentic' 
-                ? 'bg-purple-950/15 border-purple-500/30 ring-1 ring-purple-500/20' 
+                ? isLight
+                  ? 'bg-purple-100/70 border-purple-500 ring-2 ring-purple-400/40 shadow-sm'
+                  : 'bg-purple-950/15 border-purple-500/30 ring-1 ring-purple-500/20' 
+                : isLight
+                ? 'border-slate-200 bg-slate-50/50'
                 : 'border-zinc-900/60'
             }`} 
           />
@@ -248,23 +290,23 @@ export const ArchitectureCanvas: React.FC<Props> = ({
           {/* SVG Canvas for all connecting lines & animated flow particles */}
           <svg 
             className="absolute top-0 left-0 w-full h-full pointer-events-none z-[1]"
-            stroke="#b2b2b2" 
-            strokeWidth="1.5" 
+            stroke={svgStroke} 
+            strokeWidth={isLight ? 2 : 1.5} 
             fill="none"
           >
             <defs>
               {/* Arrow Markers */}
               <marker id="arr-gray" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <polygon points="0 0, 6 3, 0 6" fill="#b2b2b2" />
+                <polygon points="0 0, 6 3, 0 6" fill={svgStroke} />
               </marker>
               <marker id="arr-peach" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <polygon points="0 0, 6 3, 0 6" fill="#e9b999" />
+                <polygon points="0 0, 6 3, 0 6" fill={peachStroke} />
               </marker>
               <marker id="arr-pink" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <polygon points="0 0, 6 3, 0 6" fill="#b33a78" />
+                <polygon points="0 0, 6 3, 0 6" fill={pinkStroke} />
               </marker>
               <marker id="arr-active-gold" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <polygon points="0 0, 6 3, 0 6" fill="#fbbf24" />
+                <polygon points="0 0, 6 3, 0 6" fill={goldStroke} />
               </marker>
 
               {/* Glowing Filters */}
@@ -286,7 +328,7 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               <path 
                 id="llm-feedback"
                 d="M 80 550 L 50 550 L 50 100 L 100 100" 
-                stroke="#e9b999" 
+                stroke={peachStroke} 
                 strokeDasharray="6,5" 
                 markerEnd="url(#arr-peach)" 
               />
@@ -322,14 +364,14 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               <path 
                 id="rag-feedback"
                 d="M 380 550 L 330 550 L 330 100 L 400 100" 
-                stroke="#e9b999" 
+                stroke={peachStroke} 
                 strokeDasharray="6,5" 
                 markerEnd="url(#arr-peach)" 
               />
 
               {flowAnimating && (
                 <>
-                  <circle r="3.5" fill="#e9b999">
+                  <circle r="3.5" fill={peachStroke}>
                     <animateMotion dur="2.8s" repeatCount="indefinite" path="M 450 135 L 450 185" />
                   </circle>
                   <circle r="3.5" fill="#4ade80">
@@ -344,7 +386,7 @@ export const ArchitectureCanvas: React.FC<Props> = ({
                   <circle r="3.5" fill="#fb923c">
                     <animateMotion dur="2.8s" repeatCount="indefinite" path="M 450 425 L 450 515" begin="2.0s" />
                   </circle>
-                  <circle r="3.5" fill="#e9b999">
+                  <circle r="3.5" fill={peachStroke}>
                     <animateMotion dur="3.5s" repeatCount="indefinite" path="M 380 550 L 330 550 L 330 100 L 400 100" begin="2.6s" />
                   </circle>
                 </>
@@ -374,7 +416,7 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               <line x1="820" y1="465" x2="820" y2="545" markerEnd="url(#arr-gray)" />
 
               {/* Tools to Action */}
-              <line x1="1020" y1="465" x2="1020" y2="545" stroke="#b33a78" strokeDasharray="5,4" markerEnd="url(#arr-pink)" />
+              <line x1="1020" y1="465" x2="1020" y2="545" stroke={pinkStroke} strokeDasharray="5,4" markerEnd="url(#arr-pink)" />
 
               {/* Answers to Reasoning */}
               <line x1="740" y1="560" x2="660" y2="560" markerEnd="url(#arr-gray)" />
@@ -387,7 +429,7 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               <path 
                 id="agent-feedback-main"
                 d="M 820 605 L 820 640 L 550 640 L 550 100 L 770 100" 
-                stroke="#e9b999" 
+                stroke={peachStroke} 
                 strokeDasharray="6,5" 
                 markerEnd="url(#arr-peach)" 
               />
@@ -395,7 +437,7 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               <path 
                 id="agent-feedback-action"
                 d="M 1020 605 L 1020 640 L 820 640" 
-                stroke="#e9b999" 
+                stroke={peachStroke} 
                 strokeDasharray="6,5" 
               />
 
@@ -487,11 +529,11 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               className="absolute text-center cursor-pointer group" 
               style={{ left: '150px', top: '680px', transform: 'translateX(-50%)' }}
             >
-              <div className="label-title text-zinc-100 group-hover:text-blue-400 transition-colors flex items-center justify-center gap-1">
+              <div className={`label-title ${isLight ? 'text-slate-900 font-bold' : 'text-zinc-100'} group-hover:text-blue-500 transition-colors flex items-center justify-center gap-1`}>
                 L.L.M
-                <Sparkles className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-blue-400 transition-opacity" />
+                <Sparkles className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-blue-500 transition-opacity" />
               </div>
-              <div className="label-subtitle text-zinc-400 group-hover:text-zinc-200">ChatGPT</div>
+              <div className={`label-subtitle ${isLight ? 'text-slate-600 font-semibold' : 'text-zinc-400'} group-hover:text-zinc-900`}>ChatGPT</div>
             </div>
           </div>
 
@@ -575,11 +617,11 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               className="absolute text-center cursor-pointer group" 
               style={{ left: '450px', top: '680px', transform: 'translateX(-50%)' }}
             >
-              <div className="label-title text-zinc-100 group-hover:text-sky-400 transition-colors flex items-center justify-center gap-1">
+              <div className={`label-title ${isLight ? 'text-slate-900 font-bold' : 'text-zinc-100'} group-hover:text-sky-500 transition-colors flex items-center justify-center gap-1`}>
                 R.A.G
-                <Sparkles className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-sky-400 transition-opacity" />
+                <Sparkles className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-sky-500 transition-opacity" />
               </div>
-              <div className="label-subtitle text-zinc-400 group-hover:text-zinc-200">Perplexity</div>
+              <div className={`label-subtitle ${isLight ? 'text-slate-600 font-semibold' : 'text-zinc-400'} group-hover:text-zinc-900`}>Perplexity</div>
             </div>
           </div>
 
@@ -707,11 +749,11 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               className="absolute text-center cursor-pointer group" 
               style={{ left: '820px', top: '680px', transform: 'translateX(-50%)' }}
             >
-              <div className="label-title text-zinc-100 group-hover:text-purple-400 transition-colors flex items-center justify-center gap-1">
+              <div className={`label-title ${isLight ? 'text-slate-900 font-bold' : 'text-zinc-100'} group-hover:text-purple-500 transition-colors flex items-center justify-center gap-1`}>
                 Agentic AI
-                <Sparkles className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-purple-400 transition-opacity" />
+                <Sparkles className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-purple-500 transition-opacity" />
               </div>
-              <div className="label-subtitle text-zinc-400 group-hover:text-zinc-200">Goover / Operator</div>
+              <div className={`label-subtitle ${isLight ? 'text-slate-600 font-semibold' : 'text-zinc-400'} group-hover:text-zinc-900`}>Goover / Operator</div>
             </div>
           </div>
         </div>

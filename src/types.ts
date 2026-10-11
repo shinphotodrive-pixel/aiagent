@@ -1,6 +1,6 @@
 export type Paradigm = 'all' | 'llm' | 'rag' | 'agentic';
 export type Language = 'ko' | 'en';
-export type ActiveTab = 'canvas' | 'simulator' | 'defense' | 'ontology' | 'kimdaeshik' | 'harness' | 'analytics' | 'dictionary' | 'matrix';
+export type ActiveTab = 'canvas' | 'simulator' | 'roadmap' | 'graph' | 'defense' | 'ontology' | 'kimdaeshik' | 'harness' | 'analytics' | 'dictionary' | 'matrix';
 
 export interface ArchitectureNode {
   id: string;
