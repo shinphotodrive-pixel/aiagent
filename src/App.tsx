@@ -3,12 +3,26 @@ import { ActiveTab, ArchitectureNode, Language, Paradigm } from './types';
 import { Header } from './components/Header';
 import { ArchitectureCanvas } from './components/ArchitectureCanvas';
 import { ExecutionSimulator } from './components/ExecutionSimulator';
+import { HarnessArchitectureExplorer } from './components/HarnessArchitectureExplorer';
+import { AnalyticsCharts } from './components/AnalyticsCharts';
+import { TermsDictionary } from './components/TermsDictionary';
 import { ComparisonMatrix } from './components/ComparisonMatrix';
+import { DefenseAIExplorer } from './components/DefenseAIExplorer';
+import { OntologyAIExplorer } from './components/OntologyAIExplorer';
+import { KimDaeShikExplorer } from './components/KimDaeShikExplorer';
 import { NodeDetailModal } from './components/NodeDetailModal';
-import { ARCHITECTURE_NODES } from './data/architectureData';
-import { Check, Info, Sparkles } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { ProgressProvider } from './context/ProgressContext';
 
 export default function App() {
+  return (
+    <ProgressProvider>
+      <MainApp />
+    </ProgressProvider>
+  );
+}
+
+function MainApp() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('canvas');
   const [language, setLanguage] = useState<Language>('ko');
   const [selectedParadigm, setSelectedParadigm] = useState<Paradigm>('all');
@@ -35,9 +49,18 @@ export default function App() {
 
   const handleHighlightNode = (nodeId: string | null) => {
     setHighlightedNodeId(nodeId);
-    if (nodeId && ARCHITECTURE_NODES[nodeId]) {
-      // also keep in context
-    }
+  };
+
+  const handleSearchSelectNode = (node: ArchitectureNode) => {
+    setActiveTab('canvas');
+    setSelectedParadigm(node.paradigm === 'shared' ? 'all' : node.paradigm);
+    setHighlightedNodeId(node.id);
+    setSelectedNode(node);
+    showToast(
+      language === 'ko'
+        ? `"${node.nameKo}" 노드로 이동했습니다.`
+        : `Navigated to "${node.name}" node.`
+    );
   };
 
   const isKo = language === 'ko';
@@ -51,6 +74,7 @@ export default function App() {
         language={language}
         setLanguage={setLanguage}
         onShare={handleShare}
+        onSelectNode={handleSearchSelectNode}
       />
 
       {/* Main Content Area */}
@@ -65,6 +89,13 @@ export default function App() {
               onSelectParadigm={setSelectedParadigm}
               flowAnimating={flowAnimating}
               setFlowAnimating={setFlowAnimating}
+              onExportSuccess={() =>
+                showToast(
+                  language === 'ko'
+                    ? '고해상도(2.5x) PNG 이미지가 저장되었습니다.'
+                    : 'High-resolution (2.5x) PNG exported successfully.'
+                )
+              }
             />
           </div>
         )}
@@ -75,6 +106,42 @@ export default function App() {
               language={language}
               onHighlightNode={handleHighlightNode}
             />
+          </div>
+        )}
+
+        {activeTab === 'defense' && (
+          <div className="w-full animate-in fade-in duration-300">
+            <DefenseAIExplorer language={language} />
+          </div>
+        )}
+
+        {activeTab === 'ontology' && (
+          <div className="w-full animate-in fade-in duration-300">
+            <OntologyAIExplorer language={language} />
+          </div>
+        )}
+
+        {activeTab === 'kimdaeshik' && (
+          <div className="w-full animate-in fade-in duration-300">
+            <KimDaeShikExplorer language={language} />
+          </div>
+        )}
+
+        {activeTab === 'harness' && (
+          <div className="w-full animate-in fade-in duration-300">
+            <HarnessArchitectureExplorer language={language} />
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="w-full animate-in fade-in duration-300">
+            <AnalyticsCharts language={language} />
+          </div>
+        )}
+
+        {activeTab === 'dictionary' && (
+          <div className="w-full animate-in fade-in duration-300">
+            <TermsDictionary language={language} />
           </div>
         )}
 
@@ -104,18 +171,20 @@ export default function App() {
 
       {/* Footer */}
       <footer className="w-full border-t border-zinc-900 py-6 px-4 text-center text-xs text-zinc-500 mt-auto">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>
             {isKo 
-              ? 'AI 시스템 아키텍처 비교: LLM · RAG · Agentic AI'
-              : 'AI System Architecture Comparison: LLM · RAG · Agentic AI'}
+              ? '차세대 인공지능 아키텍처: 하네스 엔지니어링 · OAG · 52개 핵심 AI 용어 대시보드'
+              : 'Next-Gen AI Architecture: Harness Engineering · OAG · 52 Core AI Terms Dashboard'}
           </p>
-          <div className="flex items-center gap-4 text-zinc-400 text-[11px]">
-            <span>ChatGPT (Base)</span>
+          <div className="flex items-center gap-3 text-zinc-400 text-[11px]">
+            <span>Harness 3-Layer</span>
             <span>·</span>
-            <span>Perplexity</span>
+            <span>AgentFail</span>
             <span>·</span>
-            <span>Goover / Operator</span>
+            <span>Context-Aware MCP</span>
+            <span>·</span>
+            <span>OAG & Palantir AIP</span>
           </div>
         </div>
       </footer>

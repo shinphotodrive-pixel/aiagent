@@ -1,6 +1,6 @@
 export type Paradigm = 'all' | 'llm' | 'rag' | 'agentic';
 export type Language = 'ko' | 'en';
-export type ActiveTab = 'canvas' | 'simulator' | 'matrix';
+export type ActiveTab = 'canvas' | 'simulator' | 'defense' | 'ontology' | 'kimdaeshik' | 'harness' | 'analytics' | 'dictionary' | 'matrix';
 
 export interface ArchitectureNode {
   id: string;
@@ -90,4 +90,17 @@ export interface PresetScenario {
   prompt: string;
   promptKo: string;
   category: string;
+}
+
+export type TermCategory = 'Architecture' | 'Framework' | 'LLM' | 'Security' | 'Knowledge';
+
+export interface AITerm {
+  id: number;
+  name: string;
+  eng: string;
+  category: TermCategory;
+  desc: string;
+  youtubeUrl: string;
+  youtubeTitle: string;
+  youtubeSummary: string;
 }

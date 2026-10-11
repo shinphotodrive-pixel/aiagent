@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { ArchitectureNode, Language, Paradigm } from '../types';
 import { ARCHITECTURE_NODES } from '../data/architectureData';
-import { NodeTooltip } from './NodeTooltip';
-import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, Layers, Sparkles } from 'lucide-react';
+import { Tooltip } from './Tooltip';
+import { toPng } from 'html-to-image';
+import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, Layers, Sparkles, Download, Loader2 } from 'lucide-react';
 
 interface Props {
   language: Language;
@@ -12,6 +13,7 @@ interface Props {
   onSelectParadigm: (paradigm: Paradigm) => void;
   flowAnimating: boolean;
   setFlowAnimating: (val: boolean) => void;
+  onExportSuccess?: () => void;
 }
 
 export const ArchitectureCanvas: React.FC<Props> = ({
@@ -21,13 +23,15 @@ export const ArchitectureCanvas: React.FC<Props> = ({
   onSelectNode,
   onSelectParadigm,
   flowAnimating,
-  setFlowAnimating
+  setFlowAnimating,
+  onExportSuccess
 }) => {
   const isKo = language === 'ko';
   const [zoom, setZoom] = useState(1);
   const [hoveredParadigm, setHoveredParadigm] = useState<Paradigm | null>(null);
-  const [hoveredNode, setHoveredNode] = useState<ArchitectureNode | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasExportRef = useRef<HTMLDivElement>(null);
 
   const effectiveParadigm = hoveredParadigm || selectedParadigm;
 
@@ -39,6 +43,43 @@ export const ArchitectureCanvas: React.FC<Props> = ({
   const handleResetZoom = () => setZoom(1);
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.15, 1.6));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.15, 0.6));
+
+  const handleExportPNG = async () => {
+    if (!canvasExportRef.current) return;
+    setIsExporting(true);
+    try {
+      const prevTransform = canvasExportRef.current.style.transform;
+      canvasExportRef.current.style.transform = 'scale(1)';
+
+      await new Promise((resolve) => setTimeout(resolve, 60));
+
+      const dataUrl = await toPng(canvasExportRef.current, {
+        pixelRatio: 2.5,
+        backgroundColor: '#000000',
+        quality: 1,
+        filter: (node) => {
+          if (node instanceof HTMLElement && node.classList.contains('no-export')) {
+            return false;
+          }
+          return true;
+        },
+      });
+
+      canvasExportRef.current.style.transform = prevTransform;
+
+      const link = document.createElement('a');
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.download = `AI-Architecture-${selectedParadigm}-${timestamp}.png`;
+      link.href = dataUrl;
+      link.click();
+
+      onExportSuccess?.();
+    } catch (err) {
+      console.error('Failed to export high-res PNG:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="relative w-full flex flex-col items-center select-none">
@@ -145,6 +186,28 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               <RotateCcw className="w-3 h-3" />
             </button>
           </div>
+
+          <div className="h-4 w-px bg-zinc-800 mx-1" />
+
+          {/* Export High-Res PNG Button */}
+          <button
+            onClick={handleExportPNG}
+            disabled={isExporting}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-md transition-all font-medium border bg-zinc-800/90 text-zinc-200 border-zinc-700 hover:text-white hover:bg-zinc-700 hover:border-zinc-600 disabled:opacity-50 cursor-pointer shadow-sm active:scale-95"
+            title={isKo ? '캔버스를 고해상도(2.5x) PNG 이미지로 캡처하여 저장' : 'Capture and download canvas as high-resolution (2.5x) PNG'}
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                <span>{isKo ? 'PNG 캡처 중...' : 'Capturing...'}</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isKo ? '고해상도 PNG 저장' : 'Export PNG'}</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -155,6 +218,7 @@ export const ArchitectureCanvas: React.FC<Props> = ({
         style={{ minHeight: '780px' }}
       >
         <div 
+          ref={canvasExportRef}
           className="canvas-container relative transition-transform duration-200 ease-out origin-top"
           style={{ transform: `scale(${zoom})` }}
         >
@@ -372,50 +436,50 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             onMouseLeave={() => setHoveredParadigm(null)}
           >
             {/* User */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['user-1'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['user-1'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-user ${activeNodeId === 'user-1' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '150px', top: '100px' }}
-            >
-              <svg viewBox="0 0 24 24" className="w-8 h-8 fill-zinc-900 pointer-events-none">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['user-1']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['user-1'])}
+                className={`node node-user ${activeNodeId === 'user-1' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '150px', top: '100px' }}
+              >
+                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-zinc-900 pointer-events-none">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </div>
+            </Tooltip>
 
             {/* Prompt */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['prompt-1'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['prompt-1'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-green-light ${activeNodeId === 'prompt-1' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '150px', top: '220px' }}
-            >
-              Prompt
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['prompt-1']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['prompt-1'])}
+                className={`node node-rect bg-green-light ${activeNodeId === 'prompt-1' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '150px', top: '220px' }}
+              >
+                Prompt
+              </div>
+            </Tooltip>
 
             {/* LLM */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['llm-1'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['llm-1'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-blue ${activeNodeId === 'llm-1' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '150px', top: '400px' }}
-            >
-              LLM
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['llm-1']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['llm-1'])}
+                className={`node node-rect bg-blue ${activeNodeId === 'llm-1' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '150px', top: '400px' }}
+              >
+                LLM
+              </div>
+            </Tooltip>
 
             {/* Answer */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['answer-1'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['answer-1'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-orange ${activeNodeId === 'answer-1' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '150px', top: '550px' }}
-            >
-              Answer
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['answer-1']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['answer-1'])}
+                className={`node node-rect bg-orange ${activeNodeId === 'answer-1' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '150px', top: '550px' }}
+              >
+                Answer
+              </div>
+            </Tooltip>
 
             {/* Label Column 1 */}
             <div 
@@ -438,72 +502,72 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             onMouseLeave={() => setHoveredParadigm(null)}
           >
             {/* User */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['user-2'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['user-2'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-user ${activeNodeId === 'user-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '450px', top: '100px' }}
-            >
-              <svg viewBox="0 0 24 24" className="w-8 h-8 fill-zinc-900 pointer-events-none">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['user-2']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['user-2'])}
+                className={`node node-user ${activeNodeId === 'user-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '450px', top: '100px' }}
+              >
+                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-zinc-900 pointer-events-none">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </div>
+            </Tooltip>
 
             {/* Prompt */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['prompt-2'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['prompt-2'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-green-light ${activeNodeId === 'prompt-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '450px', top: '220px' }}
-            >
-              Prompt
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['prompt-2']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['prompt-2'])}
+                className={`node node-rect bg-green-light ${activeNodeId === 'prompt-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '450px', top: '220px' }}
+              >
+                Prompt
+              </div>
+            </Tooltip>
 
             {/* Search */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['search-2'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['search-2'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect-sm bg-green-dark ${activeNodeId === 'search-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '650px', top: '220px' }}
-            >
-              Search
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['search-2']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['search-2'])}
+                className={`node node-rect-sm bg-green-dark ${activeNodeId === 'search-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '650px', top: '220px' }}
+              >
+                Search
+              </div>
+            </Tooltip>
 
             {/* Context (DB Cylinder) */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['context-2'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['context-2'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-db bg-db-blue ${activeNodeId === 'context-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '650px', top: '330px' }}
-            >
-              Context
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['context-2']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['context-2'])}
+                className={`node node-db bg-db-blue ${activeNodeId === 'context-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '650px', top: '330px' }}
+              >
+                Context
+              </div>
+            </Tooltip>
 
             {/* LLM */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['llm-2'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['llm-2'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-blue ${activeNodeId === 'llm-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '450px', top: '400px' }}
-            >
-              LLM
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['llm-2']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['llm-2'])}
+                className={`node node-rect bg-blue ${activeNodeId === 'llm-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '450px', top: '400px' }}
+              >
+                LLM
+              </div>
+            </Tooltip>
 
             {/* Answer */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['answer-2'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['answer-2'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-orange ${activeNodeId === 'answer-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '450px', top: '550px' }}
-            >
-              Answer
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['answer-2']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['answer-2'])}
+                className={`node node-rect bg-orange ${activeNodeId === 'answer-2' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '450px', top: '550px' }}
+              >
+                Answer
+              </div>
+            </Tooltip>
 
             {/* Label Column 2 */}
             <div 
@@ -526,116 +590,116 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             onMouseLeave={() => setHoveredParadigm(null)}
           >
             {/* User */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['user-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['user-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-user ${activeNodeId === 'user-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '820px', top: '100px' }}
-            >
-              <svg viewBox="0 0 24 24" className="w-8 h-8 fill-zinc-900 pointer-events-none">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['user-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['user-3'])}
+                className={`node node-user ${activeNodeId === 'user-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '820px', top: '100px' }}
+              >
+                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-zinc-900 pointer-events-none">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </div>
+            </Tooltip>
 
             {/* Prompt */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['prompt-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['prompt-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-green-light ${activeNodeId === 'prompt-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '820px', top: '220px' }}
-            >
-              Prompt
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['prompt-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['prompt-3'])}
+                className={`node node-rect bg-green-light ${activeNodeId === 'prompt-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '820px', top: '220px' }}
+              >
+                Prompt
+              </div>
+            </Tooltip>
 
             {/* Search */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['search-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['search-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect-sm bg-green-dark ${activeNodeId === 'search-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '1020px', top: '220px' }}
-            >
-              Search
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['search-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['search-3'])}
+                className={`node node-rect-sm bg-green-dark ${activeNodeId === 'search-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '1020px', top: '220px' }}
+              >
+                Search
+              </div>
+            </Tooltip>
 
             {/* Context (DB Cylinder) */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['context-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['context-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-db bg-db-blue ${activeNodeId === 'context-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '1020px', top: '310px' }}
-            >
-              Context
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['context-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['context-3'])}
+                className={`node node-db bg-db-blue ${activeNodeId === 'context-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '1020px', top: '310px' }}
+              >
+                Context
+              </div>
+            </Tooltip>
 
             {/* Memory (DB Cylinder Gold) */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['memory-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['memory-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-db bg-db-gold ${activeNodeId === 'memory-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '620px', top: '310px', color: '#000' }}
-            >
-              Memory
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['memory-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['memory-3'])}
+                className={`node node-db bg-db-gold ${activeNodeId === 'memory-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '620px', top: '310px', color: '#000' }}
+              >
+                Memory
+              </div>
+            </Tooltip>
 
             {/* Reasoning & Planning (Vertical Node) */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['reasoning-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['reasoning-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-vertical bg-green-dark ${activeNodeId === 'reasoning-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '620px', top: '490px' }}
-            >
-              Reasoning<br />& Planning
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['reasoning-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['reasoning-3'])}
+                className={`node node-vertical bg-green-dark ${activeNodeId === 'reasoning-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '620px', top: '490px' }}
+              >
+                Reasoning<br />& Planning
+              </div>
+            </Tooltip>
 
             {/* LLMs */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['llms-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['llms-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-blue text-lg ${activeNodeId === 'llms-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '820px', top: '440px' }}
-            >
-              LLMs
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['llms-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['llms-3'])}
+                className={`node node-rect bg-blue text-lg ${activeNodeId === 'llms-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '820px', top: '440px' }}
+              >
+                LLMs
+              </div>
+            </Tooltip>
 
             {/* Tools / Agents (Pill Node) */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['tools-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['tools-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-pill bg-purple ${activeNodeId === 'tools-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '1020px', top: '440px' }}
-            >
-              Tools / Agents
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['tools-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['tools-3'])}
+                className={`node node-pill bg-purple ${activeNodeId === 'tools-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '1020px', top: '440px' }}
+              >
+                Tools / Agents
+              </div>
+            </Tooltip>
 
             {/* Multi-modal Answers */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['answer-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['answer-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect bg-orange text-sm ${activeNodeId === 'answer-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '820px', top: '580px' }}
-            >
-              Multi-modal<br />Answers
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['answer-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['answer-3'])}
+                className={`node node-rect bg-orange text-sm ${activeNodeId === 'answer-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '820px', top: '580px' }}
+              >
+                Multi-modal<br />Answers
+              </div>
+            </Tooltip>
 
             {/* Action (Act) */}
-            <div 
-              onClick={() => onSelectNode(ARCHITECTURE_NODES['action-3'])}
-              onMouseEnter={() => setHoveredNode(ARCHITECTURE_NODES['action-3'])}
-              onMouseLeave={() => setHoveredNode(null)}
-              className={`node node-rect-sm bg-pink font-semibold ${activeNodeId === 'action-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
-              style={{ left: '1020px', top: '580px' }}
-            >
-              Action<br />(Act)
-            </div>
+            <Tooltip node={ARCHITECTURE_NODES['action-3']} language={language}>
+              <div 
+                onClick={() => onSelectNode(ARCHITECTURE_NODES['action-3'])}
+                className={`node node-rect-sm bg-pink font-semibold ${activeNodeId === 'action-3' ? 'is-active-pulse ring-4 ring-amber-400' : ''}`} 
+                style={{ left: '1020px', top: '580px' }}
+              >
+                Action<br />(Act)
+              </div>
+            </Tooltip>
 
             {/* Label Column 3 */}
             <div 
@@ -650,9 +714,6 @@ export const ArchitectureCanvas: React.FC<Props> = ({
               <div className="label-subtitle text-zinc-400 group-hover:text-zinc-200">Goover / Operator</div>
             </div>
           </div>
-
-          {/* Floating Tooltip Component */}
-          <NodeTooltip node={hoveredNode} language={language} />
         </div>
       </div>
 
