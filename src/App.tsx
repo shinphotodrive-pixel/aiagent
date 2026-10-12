@@ -15,7 +15,8 @@ import { KnowledgeGraphExplorer } from './components/KnowledgeGraphExplorer';
 import { NodeDetailModal } from './components/NodeDetailModal';
 import { ActivityFeed } from './components/ActivityFeed';
 import { ARCHITECTURE_NODES } from './data/architectureData';
-import { Check } from 'lucide-react';
+import { Check, FileDown } from 'lucide-react';
+import { ArchitecturePdfReportModal } from './components/ArchitecturePdfReportModal';
 import { ProgressProvider, useProgress } from './context/ProgressContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 
@@ -37,6 +38,7 @@ function MainApp() {
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
   const [flowAnimating, setFlowAnimating] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showPdfReportModal, setShowPdfReportModal] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -249,6 +251,23 @@ function MainApp() {
           node={selectedNode}
           language={language}
           onClose={() => setSelectedNode(null)}
+          onOpenPdfReport={(node) => {
+            setHighlightedNodeId(node.id);
+            setSelectedParadigm(node.paradigm === 'shared' ? 'all' : node.paradigm);
+            setShowPdfReportModal(true);
+          }}
+        />
+      )}
+
+      {/* Global Architecture PDF Report Modal */}
+      {showPdfReportModal && (
+        <ArchitecturePdfReportModal
+          language={language}
+          selectedParadigm={selectedParadigm}
+          activeNodeId={highlightedNodeId || (selectedNode ? selectedNode.id : null)}
+          flowAnimating={flowAnimating}
+          onClose={() => setShowPdfReportModal(false)}
+          onShowToast={showToast}
         />
       )}
 

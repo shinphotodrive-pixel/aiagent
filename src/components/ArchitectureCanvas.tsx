@@ -3,8 +3,9 @@ import { ArchitectureNode, Language, Paradigm } from '../types';
 import { ARCHITECTURE_NODES } from '../data/architectureData';
 import { Tooltip } from './Tooltip';
 import { toPng } from 'html-to-image';
-import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, Layers, Sparkles, Download, Loader2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Play, Pause, Layers, Sparkles, Download, Loader2, FileDown, FileText } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { ArchitecturePdfReportModal } from './ArchitecturePdfReportModal';
 
 interface Props {
   language: Language;
@@ -32,6 +33,7 @@ export const ArchitectureCanvas: React.FC<Props> = ({
   const [zoom, setZoom] = useState(1);
   const [hoveredParadigm, setHoveredParadigm] = useState<Paradigm | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasExportRef = useRef<HTMLDivElement>(null);
 
@@ -234,9 +236,19 @@ export const ArchitectureCanvas: React.FC<Props> = ({
             ) : (
               <>
                 <Download className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-                <span>{isKo ? '고해상도 PNG 저장' : 'Export PNG'}</span>
+                <span>{isKo ? 'PNG 저장' : 'Export PNG'}</span>
               </>
             )}
+          </button>
+
+          {/* Export High-Quality PDF Report Button */}
+          <button
+            onClick={() => setShowPdfModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-md transition-all font-semibold border bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white border-transparent shadow-sm shadow-indigo-500/20 active:scale-95 cursor-pointer"
+            title={isKo ? '현재 구성 및 활성 노드 상세가 포함된 고품질 A4 가로 PDF 리포트 생성' : 'Generate high-quality A4 landscape PDF report with current configuration and active node details'}
+          >
+            <FileDown className="w-3.5 h-3.5" />
+            <span>{isKo ? 'PDF 리포트 출력' : 'PDF Report'}</span>
           </button>
         </div>
       </div>
@@ -766,6 +778,17 @@ export const ArchitectureCanvas: React.FC<Props> = ({
           ? '노드를 클릭하면 내부 동작 원리, API 입출력 구조 및 예제 코드를 확인할 수 있습니다.' 
           : 'Click any node to inspect technical internals, API schemas, and sample code.'}
       </div>
+
+      {/* High-Quality PDF Report Modal */}
+      {showPdfModal && (
+        <ArchitecturePdfReportModal
+          language={language}
+          selectedParadigm={selectedParadigm}
+          activeNodeId={activeNodeId}
+          flowAnimating={flowAnimating}
+          onClose={() => setShowPdfModal(false)}
+        />
+      )}
     </div>
   );
 };
