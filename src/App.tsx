@@ -238,7 +238,7 @@ function MainApp() {
 
         {activeTab === 'matrix' && (
           <div className="w-full animate-in fade-in duration-300">
-            <ComparisonMatrix language={language} />
+            <ComparisonMatrix language={language} onShowToast={showToast} />
           </div>
         )}
       </main>

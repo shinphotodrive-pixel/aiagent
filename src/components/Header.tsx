@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { ActiveTab, ArchitectureNode, Language } from '../types';
 import { GlobalSearchBar } from './GlobalSearchBar';
-import { Layers, Play, Zap, Globe, Share2, TrendingUp, BookOpen, Shield, Crosshair, Network, Brain, Trophy, Sun, Moon, Compass, Award } from 'lucide-react';
+import { Layers, Play, Zap, Globe, Share2, TrendingUp, BookOpen, Shield, Crosshair, Network, Brain, Trophy, Sun, Moon, Compass, Award, Sparkles } from 'lucide-react';
 import { useProgress } from '../context/ProgressContext';
 import { useTheme } from '../context/ThemeContext';
 import { ProgressDashboardModal } from './ProgressDashboardModal';
 import { CertificateExportModal } from './CertificateExportModal';
+import { RecommendationWizardModal } from './RecommendationWizardModal';
 
 interface Props {
   activeTab: ActiveTab;
@@ -28,6 +29,7 @@ export const Header: React.FC<Props> = ({
   const { isLight, toggleTheme } = useTheme();
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showRecommendationModal, setShowRecommendationModal] = useState(false);
   const { defenseStats, ontologyStats, kimdaeshikStats, overallStats } = useProgress();
 
   const navItems: Array<{ id: ActiveTab; labelKo: string; labelEn: string; icon: React.ReactNode }> = [
@@ -224,6 +226,20 @@ export const Header: React.FC<Props> = ({
             )}
           </button>
 
+          {/* AI Recommendation Wizard Trigger */}
+          <button
+            onClick={() => setShowRecommendationModal(true)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer shadow-sm group border ${
+              isLight
+                ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-950 border-amber-300'
+                : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-amber-500/10'
+            }`}
+            title={isKo ? '맞춤형 AI 학습 & 아키텍처 추천 마법사' : 'AI Recommendation Advisor'}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 group-hover:rotate-12 transition-transform" />
+            <span className="hidden sm:inline font-bold">{isKo ? '추천 마법사' : 'Advisor'}</span>
+          </button>
+
           {/* Learning Progress Dashboard Modal Trigger */}
           <button
             onClick={() => setShowProgressModal(true)}
@@ -300,6 +316,9 @@ export const Header: React.FC<Props> = ({
           onOpenCertificate={() => {
             setShowCertificateModal(true);
           }}
+          onOpenRecommendation={() => {
+            setShowRecommendationModal(true);
+          }}
         />
       )}
 
@@ -308,6 +327,18 @@ export const Header: React.FC<Props> = ({
         <CertificateExportModal
           language={language}
           onClose={() => setShowCertificateModal(false)}
+        />
+      )}
+
+      {/* Recommendation Wizard Modal */}
+      {showRecommendationModal && (
+        <RecommendationWizardModal
+          language={language}
+          onClose={() => setShowRecommendationModal(false)}
+          onNavigateTab={(tab) => {
+            setActiveTab(tab);
+            setShowRecommendationModal(false);
+          }}
         />
       )}
     </header>

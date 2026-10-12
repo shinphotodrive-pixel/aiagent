@@ -12,7 +12,7 @@ export interface TabProgressStats {
   percent: number;
 }
 
-export type ActivityActionType = 'navigate_tab' | 'select_node' | 'complete_module' | 'uncomplete_module' | 'simulate' | 'change_paradigm';
+export type ActivityActionType = 'navigate_tab' | 'select_node' | 'complete_module' | 'uncomplete_module' | 'simulate' | 'change_paradigm' | 'export_pdf' | 'bookmark_simulation' | 'diff_view';
 
 export interface ActivityLogItem {
   id: string;
@@ -27,6 +27,7 @@ export interface ActivityLogItem {
     nodeId?: string;
     paradigm?: string;
     moduleId?: string;
+    bookmarkId?: string;
   };
 }
 

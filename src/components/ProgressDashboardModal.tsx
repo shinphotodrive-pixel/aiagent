@@ -25,6 +25,7 @@ interface Props {
   onClose: () => void;
   onNavigateTab: (tab: ActiveTab) => void;
   onOpenCertificate?: () => void;
+  onOpenRecommendation?: () => void;
 }
 
 export const ProgressDashboardModal: React.FC<Props> = ({
@@ -32,6 +33,7 @@ export const ProgressDashboardModal: React.FC<Props> = ({
   onClose,
   onNavigateTab,
   onOpenCertificate,
+  onOpenRecommendation,
 }) => {
   const isKo = language === 'ko';
   const { isLight } = useTheme();
@@ -161,6 +163,23 @@ export const ProgressDashboardModal: React.FC<Props> = ({
                     ? isKo ? '완강 달성' : 'All Completed'
                     : isKo ? `${overallStats.total - overallStats.completed}개 남음` : `${overallStats.total - overallStats.completed} Remaining`}
                 </span>
+                {onOpenRecommendation && (
+                  <button
+                    onClick={() => {
+                      onOpenRecommendation();
+                      onClose();
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border shadow-sm ${
+                      isLight
+                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300'
+                        : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
+                    }`}
+                    title={isKo ? '맞춤 학습 추천 마법사' : 'AI Course Recommender'}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{isKo ? '맞춤 추천' : 'Advise Me'}</span>
+                  </button>
+                )}
                 {onOpenCertificate && (
                   <button
                     onClick={() => {
@@ -171,7 +190,7 @@ export const ProgressDashboardModal: React.FC<Props> = ({
                     title={isKo ? '수료증 및 PDF 요약서 내보내기' : 'Export Certificate & PDF'}
                   >
                     <Award className="w-3.5 h-3.5" />
-                    <span>{isKo ? '수료증·PDF 발급' : 'Certificate PDF'}</span>
+                    <span>{isKo ? '수료증·PDF' : 'Certificate'}</span>
                   </button>
                 )}
               </div>
@@ -467,6 +486,22 @@ export const ProgressDashboardModal: React.FC<Props> = ({
             <span>{isKo ? '전체 진도 초기화' : 'Reset all progress'}</span>
           </button>
           <div className="flex items-center gap-2">
+            {onOpenRecommendation && (
+              <button
+                onClick={() => {
+                  onOpenRecommendation();
+                  onClose();
+                }}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer border shadow-sm flex items-center gap-1.5 ${
+                  isLight
+                    ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300'
+                    : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>{isKo ? '맞춤 추천' : 'Advise Me'}</span>
+              </button>
+            )}
             {onOpenCertificate && (
               <button
                 onClick={() => {

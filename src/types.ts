@@ -104,3 +104,18 @@ export interface AITerm {
   youtubeTitle: string;
   youtubeSummary: string;
 }
+
+export interface SimulationBookmark {
+  id: string;
+  title: string;
+  titleKo?: string;
+  prompt: string;
+  scenarioId?: string;
+  scenarioTitle?: string;
+  scenarioTitleKo?: string;
+  createdAt: number;
+  result: SimulationResult;
+  notes?: string;
+  tags?: string[];
+}
+

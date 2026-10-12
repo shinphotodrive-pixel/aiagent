@@ -34,6 +34,7 @@ import {
   Award
 } from 'lucide-react';
 import { CertificateExportModal } from './CertificateExportModal';
+import { RecommendationWizardModal } from './RecommendationWizardModal';
 
 interface Props {
   language: Language;
@@ -46,6 +47,7 @@ export const LearningRoadmap: React.FC<Props> = ({ language, onNavigateTab }) =>
   const isKo = language === 'ko';
   const { isLight } = useTheme();
   const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showRecommendationModal, setShowRecommendationModal] = useState(false);
   const {
     defenseStats,
     ontologyStats,
@@ -257,14 +259,27 @@ export const LearningRoadmap: React.FC<Props> = ({ language, onNavigateTab }) =>
               </span>
             </div>
 
-            {/* Certificate of Completion & PDF Summary Export Button */}
-            <button
-              onClick={() => setShowCertificateModal(true)}
-              className="w-full mt-1 py-2 px-3 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md shadow-amber-500/20"
-            >
-              <Award className="w-4 h-4 text-amber-200" />
-              <span>{isKo ? '수료증 및 PDF 요약서 내보내기' : 'Export Certificate & PDF Summary'}</span>
-            </button>
+            {/* Action Buttons: Recommendation Wizard & Certificate Export */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+              <button
+                onClick={() => setShowRecommendationModal(true)}
+                className="py-2 px-3 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md shadow-amber-500/20"
+              >
+                <Sparkles className="w-4 h-4 text-amber-200" />
+                <span>{isKo ? '맞춤 학습 추천받기 ✨' : 'Get Course Advice ✨'}</span>
+              </button>
+              <button
+                onClick={() => setShowCertificateModal(true)}
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 border ${
+                  isLight
+                    ? 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+                    : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border-zinc-700'
+                }`}
+              >
+                <Award className="w-4 h-4 text-amber-500" />
+                <span>{isKo ? '수료증·PDF 내보내기' : 'Export Certificate'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1163,6 +1178,18 @@ export const LearningRoadmap: React.FC<Props> = ({ language, onNavigateTab }) =>
         <CertificateExportModal
           language={language}
           onClose={() => setShowCertificateModal(false)}
+        />
+      )}
+
+      {/* Recommendation Wizard Modal */}
+      {showRecommendationModal && (
+        <RecommendationWizardModal
+          language={language}
+          onClose={() => setShowRecommendationModal(false)}
+          onNavigateTab={(tab) => {
+            onNavigateTab(tab);
+            setShowRecommendationModal(false);
+          }}
         />
       )}
     </div>

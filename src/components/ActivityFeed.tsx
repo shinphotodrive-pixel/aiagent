@@ -18,7 +18,8 @@ import {
   ExternalLink,
   Trash2,
   SlidersHorizontal,
-  BookmarkCheck
+  BookmarkCheck,
+  ArrowLeftRight
 } from 'lucide-react';
 
 interface Props {
@@ -80,6 +81,10 @@ export const ActivityFeed: React.FC<Props> = ({
         return <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />;
       case 'simulate':
         return <Play className="w-3.5 h-3.5 text-blue-400 shrink-0" />;
+      case 'bookmark_simulation':
+        return <BookmarkCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
+      case 'diff_view':
+        return <ArrowLeftRight className="w-3.5 h-3.5 text-indigo-400 shrink-0" />;
       default:
         return <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />;
     }
